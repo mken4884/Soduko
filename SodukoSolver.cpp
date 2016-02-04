@@ -56,7 +56,7 @@ void SodukoSolver::setSoduko(Soduko* sodukoGrid)
 
 void SodukoSolver::solveSoduko()
 {
-
+	//here is a new comment
 }
 
 void SodukoSolver::analyzeRow(int xCoord, int yCoord)
