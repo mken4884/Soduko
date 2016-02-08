@@ -10,19 +10,19 @@ SodukoSolver::SodukoSolver()
 	for (i = 0; i < GRID_SIZE; i++)
 	{
 		//allocate memory for the grid struct and set the grid value
-		this->sodukoGridArray[i].remainingNumbers = (char*)malloc(GRID_SIZE*sizeof(char));
+		this->sodukoGridArray[i].remainingNumbers = (bool*)malloc(GRID_SIZE*sizeof(bool));
 		this->sodukoGridArray[i].gridNumber = i;
 
 		//set the possible values of each grid
 		for (k = 0; k < GRID_SIZE; k++)
 		{
-			this->sodukoGridArray[i].remainingNumbers[k] = 1;
+			this->sodukoGridArray[i].remainingNumbers[k] = true;
 		}
 
 		//allocate memory and set values for map points
 		for (j = 0; j < GRID_SIZE; j++)
 		{
-			this->sodukoMap[i][j].remainingNumbers = (char*)malloc(GRID_SIZE*sizeof(char));
+			this->sodukoMap[i][j].remainingNumbers = (bool*)malloc(GRID_SIZE*sizeof(bool));
 			this->sodukoMap[i][j].isSet = false;
 			this->sodukoMap[i][j].pointValue = -1;
 
@@ -35,15 +35,17 @@ SodukoSolver::SodukoSolver()
 			//set the possible values for each point
 			for (k = 0; k < GRID_SIZE; k++)
 			{
-				this->sodukoMap[i][j].remainingNumbers[k] = 1;
+				this->sodukoMap[i][j].remainingNumbers[k] = true;
 			}
 		}
 	}
+
+	return;
 }
 
 SodukoSolver::~SodukoSolver()
 {
-
+	/*
 	int i, j;
 
 	//iterate through the grid and deallocate memory for grid and grid points
@@ -56,6 +58,7 @@ SodukoSolver::~SodukoSolver()
 			free(this->sodukoMap[i][j].remainingNumbers);
 		}
 	}
+	*/
 }
 
 void SodukoSolver::setSoduko(Soduko* sodukoMap)
@@ -78,32 +81,10 @@ void SodukoSolver::solveSoduko()
 				if (!this->sodukoMap[i][j].isSet)
 				{
 					//update the soduko map and this particular point
-					this->analyzeRow(i, j);
+   					this->analyzeRow(i, j);
 					this->analyzeColumn(i, j);
 					this->analyzeGrid(i, j);
-					//temp variables to determine if the point can have a value
-					int possibleValueSize = 0;
-					int possibleValue = -1;
-					//iterate through the possible values and see if only 1 value remains
-					for (k = 0; k < GRID_SIZE; k++)
-					{
-						if (this->sodukoMap[i][j].remainingNumbers[k] > -1)
-						{
-							possibleValueSize++;
-							possibleValue = k;
-						}
-					}
-
-					//if the value is legal, update the point and all other affected points and grids
-					if (possibleValueSize == 1 && this->isLegalMove(i,j,possibleValue))
-					{
-						this->sodukoMap[i][j].isSet = true;
-						this->sodukoMap[i][j].pointValue = possibleValue;
-
-						this->analyzeRow(i, j);
-						this->analyzeColumn(i, j);
-						this->analyzeGrid(i, j);
-					}
+					this->setValue(i, j);
 				}
 			}
 		}
@@ -120,26 +101,28 @@ void SodukoSolver::solveSoduko()
 void SodukoSolver::analyzeRow(int xCoord, int yCoord)
 {
 	//holds legal values for this row only
-	char possibleValues[9] = { 1,1,1,1,1,1,1,1,1 };
+	bool possibleValues[9] = { true,true,true,true,true,true,true,true,true };
 	//coordinates of the current point
 	int i = 0;
-	int j = yCoord;
 	int k = 0;
 
+	/* iterate through the row and see if any points already have a 
+	set value. If they do, remove that value from the set of possible,
+	legal values for this row*/
 	for (i = 0; i < GRID_SIZE; i++)
 	{
-		if (this->sodukoMap[i][j].isSet)
+		if (this->sodukoMap[i][yCoord].isSet)
 		{
-			possibleValues[this->sodukoMap[i][j].pointValue] = -1;
+			possibleValues[this->sodukoMap[i][yCoord].pointValue] = false;
 		}
 	}
 	for (i = 0; i < GRID_SIZE; i++)
 	{
 		for (k = 0; k < GRID_SIZE; k++)
 		{
-			if (this->sodukoMap[i][j].remainingNumbers[k] > possibleValues[k])
+			if (this->sodukoMap[i][yCoord].remainingNumbers[k] == true &&  possibleValues[k] == false)
 			{
-				this->sodukoMap[i][j].remainingNumbers[k] = possibleValues[k];
+				this->sodukoMap[i][yCoord].remainingNumbers[k] = false;
 			}
 		}
 	}
@@ -148,26 +131,25 @@ void SodukoSolver::analyzeRow(int xCoord, int yCoord)
 void SodukoSolver::analyzeColumn(int xCoord, int yCoord)
 {
 	//holds legal values for this column only
-	char possibleValues[9] = { 1,1,1,1,1,1,1,1,1 };
+	bool possibleValues[9] = { true,true,true,true,true,true,true,true,true };
 	//coordinates of the current point
-	int i = xCoord;
 	int j = 0;
 	int k = 0;
 
 	for (j = 0; j < GRID_SIZE; j++)
 	{
-		if (this->sodukoMap[i][j].isSet)
+		if (this->sodukoMap[xCoord][j].isSet)
 		{
-			possibleValues[this->sodukoMap[i][j].pointValue] = -1;
+			possibleValues[this->sodukoMap[xCoord][j].pointValue] = false;
 		}
 	}
 	for (j = 0; j < GRID_SIZE; j++)
 	{
 		for (k = 0; k < GRID_SIZE; k++)
 		{
-			if (this->sodukoMap[i][j].remainingNumbers[k] > possibleValues[k])
+			if (this->sodukoMap[xCoord][j].remainingNumbers[k] == true &&  possibleValues[k] == false)
 			{
-				this->sodukoMap[i][j].remainingNumbers[k] = possibleValues[k];
+				this->sodukoMap[xCoord][j].remainingNumbers[k] = false;
 			}
 		}
 	}
@@ -188,7 +170,7 @@ void SodukoSolver::analyzeGrid(int xCoord, int yCoord)
 		{
 			if (this->sodukoMap[i+xGridBaseCoord][j+yGridBaseCoord].isSet)
 			{
-				this->sodukoGridArray[gridIndex].remainingNumbers[this->sodukoMap[i+xGridBaseCoord][j+yGridBaseCoord].pointValue] = -1;
+				this->sodukoGridArray[gridIndex].remainingNumbers[this->sodukoMap[i + xGridBaseCoord][j + yGridBaseCoord].pointValue] = false;;
 			}
 		}
 	}
@@ -197,9 +179,9 @@ void SodukoSolver::analyzeGrid(int xCoord, int yCoord)
 	{
 		for (k = 0; k < 3; k++)
 		{
-			if (this->sodukoMap[i + xGridBaseCoord][j + yGridBaseCoord].remainingNumbers[k] > this->sodukoGridArray[gridIndex].remainingNumbers[k])
+			if (this->sodukoMap[i + xGridBaseCoord][j + yGridBaseCoord].remainingNumbers[k] == true &&  this->sodukoGridArray[gridIndex].remainingNumbers[k] == false)
 			{
-				this->sodukoMap[i + xGridBaseCoord][j + yGridBaseCoord].remainingNumbers[k] = this->sodukoGridArray[gridIndex].remainingNumbers[k];
+				this->sodukoMap[i + xGridBaseCoord][j + yGridBaseCoord].remainingNumbers[k] = false;
 			}
 		}
 	}
@@ -251,9 +233,39 @@ void SodukoSolver::printSodukoMap()
 			if (i % 3 == 0) {
 				std::cout << "  ";
 			}
-			std::cout << (int) this->sodukoMap[i][j].pointValue;
+			if (this->sodukoMap[i][j].pointValue == -1) std::cout << "|";
+			else std::cout << (int) (this->sodukoMap[i][j].pointValue+1);
 		}
 		std::cout << "\n";
 		if ((j+1) % 3 == 0) std::cout << "\n";
+	}
+}
+
+
+bool SodukoSolver::setValue(int xCoord, int yCoord)
+{
+
+	//temp variables to determine if the point can have a value
+	int k = 0;
+	int possibleValueSize = 0;
+	int possibleValue = -1;
+	//iterate through the possible values and see if only 1 value remains
+	for (k = 0; k < GRID_SIZE; k++)
+	{
+		if (this->sodukoMap[xCoord][yCoord].remainingNumbers[k] == true)
+		{
+			possibleValueSize++;
+			possibleValue = k;
+		}
+	}
+
+	//if the value is legal, update the point and all other affected points and grids
+	if (possibleValueSize == 1 && this->isLegalMove(xCoord, yCoord, possibleValue))
+	{
+		this->setPoint(xCoord, yCoord, possibleValue);
+		/*DEBUG DELETEME*/
+		this->printSodukoMap();
+		/*DEBUG DELETEME*/
+
 	}
 }

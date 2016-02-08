@@ -1,5 +1,6 @@
 #pragma once
 #include "Soduko.h"
+#include <cstdint>
 #define GRID_SIZE 9
 
 /*
@@ -11,8 +12,8 @@
 * 6 7 8
 */
 struct SodukoGrid {
-	char* remainingNumbers;
-	char  gridNumber;
+	bool* remainingNumbers;
+	int8_t  gridNumber;
 };
 
 /*
@@ -21,9 +22,9 @@ struct SodukoGrid {
 *Possible values, if it has a value, and value
 */
 struct SodukoPoint {
-	char*       remainingNumbers;
+	bool*     remainingNumbers;
 	bool        isSet;
-	char        pointValue;
+	int8_t      pointValue;
 	SodukoGrid* grid;
 
 };
@@ -43,6 +44,7 @@ public:
 	bool setPoint(int xCoord, int yCoord, int value);
 	bool isSolved();
 	void printSodukoMap();
+	bool setValue(int xCoord, int yCoord);
 	SodukoPoint sodukoMap[GRID_SIZE][GRID_SIZE];
 	SodukoGrid  sodukoGridArray[GRID_SIZE];
 
