@@ -212,7 +212,7 @@ bool SodukoSolver::isSolved()
 	{
 		for (j = 0; j < GRID_SIZE; j++)
 		{
-			if (this->sodukoGridArray[i].remainingNumbers[j] != -1)
+			if (this->sodukoGridArray[i].remainingNumbers[j])
 			{
 				return false;
 			}
@@ -268,4 +268,5 @@ bool SodukoSolver::setValue(int xCoord, int yCoord)
 		/*DEBUG DELETEME*/
 
 	}
+	return true;
 }
