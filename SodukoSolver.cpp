@@ -70,10 +70,10 @@ void SodukoSolver::setSoduko(Soduko* sodukoMap)
 
 void SodukoSolver::solveSoduko()
 {
-	int i, j, k;
+	int i, j;
 
 	//keep going until solved
-	while (!this->isSolved())
+	while (true)//!this->isSolved())
 	{
 		for (i = 0; i < GRID_SIZE; i++)
 		{
@@ -82,6 +82,7 @@ void SodukoSolver::solveSoduko()
 				//if the point already has a value ignore it
 				if (!this->sodukoMap[i][j].isSet)
 				{
+
 					//update the soduko map and this particular point
    					this->analyzeRow(i, j);
 					this->analyzeColumn(i, j);
@@ -122,6 +123,10 @@ void SodukoSolver::analyzeRow(int xCoord, int yCoord)
 	std::list<int8_t>::iterator rowIterator = this->sodukoRowArray[yCoord].setNumbers->begin();
 	for (i = 0; i < GRID_SIZE; i++)
 	{
+		//remove an duplicates within every point
+		this->sodukoMap[i][yCoord].remainingNumbers->sort();
+		this->sodukoMap[i][yCoord].remainingNumbers->unique();
+
 		//keep checking if the iterator still has numbers left
 		while (rowIterator != this->sodukoRowArray[yCoord].setNumbers->end())
 		{
@@ -153,9 +158,14 @@ void SodukoSolver::analyzeColumn(int xCoord, int yCoord)
 	/* sort and remove any duplicates from previous analyzeColumn calls*/
 	this->sodukoColumnArray[xCoord].setNumbers->sort();
 	this->sodukoColumnArray[xCoord].setNumbers->unique();
-	std::list<int8_t>::iterator columnIterator = this->sodukoRowArray[xCoord].setNumbers->begin();
+	std::list<int8_t>::iterator columnIterator = this->sodukoColumnArray[xCoord].setNumbers->begin();
 	for (j = 0; j < GRID_SIZE; j++)
 	{
+		//remove an duplicates within every point
+		this->sodukoMap[xCoord][j].remainingNumbers->sort();
+		this->sodukoMap[xCoord][j].remainingNumbers->unique();
+
+
 		//iterate while there are still numbers left
 		while (columnIterator != this->sodukoColumnArray[xCoord].setNumbers->end())
 		{
@@ -172,20 +182,33 @@ void SodukoSolver::analyzeColumn(int xCoord, int yCoord)
 void SodukoSolver::analyzeGrid(int xCoord, int yCoord)
 {
 	//the starting indices of the grid where the point lies
-	int xGridBaseCoord = xCoord/3;
-	int yGridBaseCoord = (yCoord / 3) * 3;
+	int xGridBase = xCoord/3;
+	int yGridBase = (yCoord / 3) * 3;
+
+	//the offset of x and y points for grid iteration
+	int xGridOffset = xGridBase * 3;
+	int yGridOffset = yGridBase;
 	
 	//find which grid the point corresponds to
-	int gridIndex = xGridBaseCoord + yGridBaseCoord;
+	int gridIndex = xGridBase + yGridBase;
 	int i, j, k;
+	
+	if (this->sodukoMap[xCoord][yCoord].grid->gridNumber != gridIndex)
+	{
+		while (1);
+	}
 
 	for (i = 0; i < 3; i++)
 	{
 		for (j = 0; j < 3; j++)
 		{
-			if (this->sodukoMap[i+xGridBaseCoord][j+yGridBaseCoord].isSet)
+			if (this->sodukoMap[i+xGridOffset][j+yGridOffset].isSet)
 			{
-				this->sodukoGridArray[gridIndex].setNumbers->push_back(this->sodukoMap[i + xGridBaseCoord][j + yGridBaseCoord].pointValue);
+				if ((i + xGridBase) == 7 && (j + yGridBase) == 8)
+				{
+					int two = 1 + 1;
+				}
+				this->sodukoGridArray[gridIndex].setNumbers->push_back(this->sodukoMap[i + xGridOffset][j + yGridOffset].pointValue);
 			}
 		}
 	}
@@ -194,13 +217,17 @@ void SodukoSolver::analyzeGrid(int xCoord, int yCoord)
 	this->sodukoGridArray[gridIndex].setNumbers->unique();
 	std::list<int8_t>::iterator gridIterator = this->sodukoGridArray[gridIndex].setNumbers->begin();
 
-	for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++)
 	{
-		for (k = 0; k < 3; k++)
+		for (j = 0; j < 3; j++)
 		{
+			//remove any duplicates within every point
+			this->sodukoMap[i + xGridOffset][j + yGridOffset].remainingNumbers->sort();
+			this->sodukoMap[i + xGridOffset][j + yGridOffset].remainingNumbers->unique();
+
 			while (gridIterator != this->sodukoGridArray[gridIndex].setNumbers->end())
 			{
-				this->sodukoMap[i+xGridBaseCoord][j+yGridBaseCoord].remainingNumbers->remove(*gridIterator);
+				this->sodukoMap[i+xGridOffset][j+yGridOffset].remainingNumbers->remove(*gridIterator);
 				gridIterator++;
 			}
 			gridIterator = this->sodukoGridArray[gridIndex].setNumbers->begin();
@@ -215,7 +242,7 @@ bool SodukoSolver::isLegalMove(int xCoord, int yCoord, int value)
 
 bool SodukoSolver::setPoint(int xCoord, int yCoord, int value)
 {
-	this->sodukoMap[xCoord][yCoord].pointValue = value;
+	this->sodukoMap[xCoord][yCoord].pointValue = (int8_t)value;
 	this->sodukoMap[xCoord][yCoord].isSet = true;
 
 	//update the grid and point values so remaining for both is correct
@@ -228,15 +255,16 @@ bool SodukoSolver::setPoint(int xCoord, int yCoord, int value)
 
 bool SodukoSolver::isSolved()
 {
-	int i,j;
+	int i;
 	for (i = 0; i < GRID_SIZE; i++)
 	{
-		for (j = 0; j < GRID_SIZE; j++)
+		//do this combo to remove any duplicates
+		this->sodukoGridArray[i].setNumbers->sort();
+		this->sodukoGridArray[i].setNumbers->unique();
+
+		if (this->sodukoGridArray[i].setNumbers->size() < (int8_t)GRID_SIZE)
 		{
-			if (this->sodukoGridArray[i].remainingNumbers[j])
-			{
-				return false;
-			}
+			return false;
 		}
 	}
 	return true;
@@ -260,33 +288,24 @@ void SodukoSolver::printSodukoMap()
 		std::cout << "\n";
 		if ((j+1) % 3 == 0) std::cout << "\n";
 	}
+	std::cout << "\n";
+	std::cout << "\n";
 }
 
 
 bool SodukoSolver::setValue(int xCoord, int yCoord)
 {
-
-	//temp variables to determine if the point can have a value
-	int k = 0;
-	int possibleValueSize = 0;
-	int possibleValue = -1;
-	//iterate through the possible values and see if only 1 value remains
-	for (k = 0; k < GRID_SIZE; k++)
+	//remove any duplicates
+	this->sodukoMap[xCoord][yCoord].remainingNumbers->sort();
+	this->sodukoMap[xCoord][yCoord].remainingNumbers->unique();
+	
+	//if there is only one remaining number, that is the point's new value
+	if (this->sodukoMap[xCoord][yCoord].remainingNumbers->size() == 1)
 	{
-		if (this->sodukoMap[xCoord][yCoord].remainingNumbers[k] == true)
-		{
-			possibleValueSize++;
-			possibleValue = k;
-		}
-	}
-
-	//if the value is legal, update the point and all other affected points and grids
-	if (possibleValueSize == 1 && this->isLegalMove(xCoord, yCoord, possibleValue))
-	{
-		this->setPoint(xCoord, yCoord, possibleValue);
-		/*DEBUG DELETEME*/
+		this->sodukoMap[xCoord][yCoord].pointValue = this->sodukoMap[xCoord][yCoord].remainingNumbers->front();
+		this->sodukoMap[xCoord][yCoord].isSet = true; 
+		std::cout << xCoord << "  " << yCoord << '\n';
 		this->printSodukoMap();
-		/*DEBUG DELETEME*/
 
 	}
 	return true;
