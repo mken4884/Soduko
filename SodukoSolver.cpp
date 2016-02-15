@@ -12,7 +12,7 @@ SodukoSolver::SodukoSolver()
 		//allocate memory for the row struct and set the row value
 		this->sodukoRowArray[i].setNumbers = new std::list<int8_t>(GRID_SIZE);
 		this->sodukoRowArray[i].rowNumber = i;
-
+		
 		//allocate memory for the column struct and set the column value
 		this->sodukoColumnArray[i].setNumbers = new std::list<int8_t>(GRID_SIZE);
 		this->sodukoColumnArray[i].columnNumber = i;
@@ -20,6 +20,16 @@ SodukoSolver::SodukoSolver()
 		//allocate memory for the grid struct and set the grid value
 		this->sodukoGridArray[i].setNumbers = new std::list<int8_t>(GRID_SIZE);
 		this->sodukoGridArray[i].gridNumber = i;
+
+		//list autofills with zeroes so remove them here
+		this->sodukoRowArray[i].setNumbers->unique();
+		this->sodukoRowArray[i].setNumbers->remove(0);
+
+		this->sodukoColumnArray[i].setNumbers->unique();
+		this->sodukoColumnArray[i].setNumbers->remove(0);
+
+		this->sodukoGridArray[i].setNumbers->unique();
+		this->sodukoGridArray[i].setNumbers->remove(0);
 
 		//allocate memory and set values for map points
 		for (j = 0; j < GRID_SIZE; j++)
@@ -204,10 +214,6 @@ void SodukoSolver::analyzeGrid(int xCoord, int yCoord)
 		{
 			if (this->sodukoMap[i+xGridOffset][j+yGridOffset].isSet)
 			{
-				if ((i + xGridBase) == 7 && (j + yGridBase) == 8)
-				{
-					int two = 1 + 1;
-				}
 				this->sodukoGridArray[gridIndex].setNumbers->push_back(this->sodukoMap[i + xGridOffset][j + yGridOffset].pointValue);
 			}
 		}

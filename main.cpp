@@ -3,12 +3,13 @@
 #include <iostream>
 
 void buildSodukoAUTO(SodukoSolver &ss);
+void buildSodukoAUTO1(SodukoSolver &ss);
 void buildSodukoCMD(SodukoSolver &ss);
 
 int main()
 {
 	SodukoSolver ss;
-	buildSodukoAUTO(ss);
+	buildSodukoAUTO1(ss);
 	ss.solveSoduko();
 	ss.isLegalMove(0,0,0);
 	return 1;
@@ -71,6 +72,39 @@ void buildSodukoAUTO(SodukoSolver &ss)
 	ss.setPoint(4,8,8);
 	ss.setPoint(5,8,4);
 	ss.setPoint(8,8,5);
+	ss.printSodukoMap();
+	return;
+}
+
+void buildSodukoAUTO1(SodukoSolver &ss)
+{
+	ss.setPoint(2,0,1);
+	ss.setPoint(3,0 ,4 );
+	ss.setPoint(8,0 ,3);
+	ss.setPoint(1,1 ,3 );
+	ss.setPoint(4,1 ,1 );
+	ss.setPoint(7,1 ,4 );
+	ss.setPoint(0,2 ,7 );
+	ss.setPoint(5,2 ,5 );
+	ss.setPoint(6,2 ,6 );
+	ss.setPoint(0,3 ,5 );
+	ss.setPoint(5,3 ,0 );
+	ss.setPoint(6,3 ,7 );
+	ss.setPoint(1,4 ,0 );
+	ss.setPoint(4, 4, 6);
+	ss.setPoint(7,4 ,5);
+	ss.setPoint(2,5 ,3 );
+	ss.setPoint(3,5 ,1 );
+	ss.setPoint(8,5 ,2 );
+	ss.setPoint(2,6 ,7 );
+	ss.setPoint(3,6 ,8 );
+	ss.setPoint(8,6 ,6 );
+	ss.setPoint(1,7 ,2 );
+	ss.setPoint(4,7 ,0 );
+	ss.setPoint(7, 7, 8);
+	ss.setPoint(0,8 ,8);
+	ss.setPoint(5, 8,4 );
+	ss.setPoint(6,8,2);
 	ss.printSodukoMap();
 	return;
 }
