@@ -9,20 +9,22 @@ SodukoSolver::SodukoSolver()
 	int i, j, k;
 	for (i = 0; i < GRID_SIZE; i++)
 	{
-		//allocate memory for the grid struct and set the grid value
-		this->sodukoGridArray[i].remainingNumbers = (bool*)malloc(GRID_SIZE*sizeof(bool));
-		this->sodukoGridArray[i].gridNumber = i;
+		//allocate memory for the row struct and set the row value
+		this->sodukoRowArray[i].setNumbers = new std::list<int8_t>(GRID_SIZE);
+		this->sodukoRowArray[i].rowNumber = i;
 
-		//set the possible values of each grid
-		for (k = 0; k < GRID_SIZE; k++)
-		{
-			this->sodukoGridArray[i].remainingNumbers[k] = true;
-		}
+		//allocate memory for the column struct and set the column value
+		this->sodukoColumnArray[i].setNumbers = new std::list<int8_t>(GRID_SIZE);
+		this->sodukoColumnArray[i].columnNumber = i;
+
+		//allocate memory for the grid struct and set the grid value
+		this->sodukoGridArray[i].setNumbers = new std::list<int8_t>(GRID_SIZE);
+		this->sodukoGridArray[i].gridNumber = i;
 
 		//allocate memory and set values for map points
 		for (j = 0; j < GRID_SIZE; j++)
 		{
-			this->sodukoMap[i][j].remainingNumbers = (bool*)malloc(GRID_SIZE*sizeof(bool));
+			this->sodukoMap[i][j].remainingNumbers = new std::list<int8_t>(GRID_SIZE);
 			this->sodukoMap[i][j].isSet = false;
 			this->sodukoMap[i][j].pointValue = -1;
 
@@ -35,7 +37,7 @@ SodukoSolver::SodukoSolver()
 			//set the possible values for each point
 			for (k = 0; k < GRID_SIZE; k++)
 			{
-				this->sodukoMap[i][j].remainingNumbers[k] = true;
+				this->sodukoMap[i][j].remainingNumbers->push_back(k);
 			}
 		}
 	}
@@ -100,67 +102,80 @@ void SodukoSolver::solveSoduko()
 */
 void SodukoSolver::analyzeRow(int xCoord, int yCoord)
 {
-	//holds legal values for this row only
-	bool possibleValues[9] = { true,true,true,true,true,true,true,true,true };
+
 	//coordinates of the current point
 	int i = 0;
 	int k = 0;
 
 	/* iterate through the row and see if any points already have a 
-	set value. If they do, remove that value from the set of possible,
-	legal values for this row*/
+	set value. If they do, add that value to the list of set values for this row*/
 	for (i = 0; i < GRID_SIZE; i++)
 	{
 		if (this->sodukoMap[i][yCoord].isSet)
 		{
-			possibleValues[this->sodukoMap[i][yCoord].pointValue] = false;
+			this->sodukoRowArray[yCoord].setNumbers->push_back(this->sodukoMap[i][yCoord].pointValue);
 		}
 	}
+	/* sort and remove any duplicates from previous analyzeRow calls*/
+	this->sodukoRowArray[yCoord].setNumbers->sort();
+	this->sodukoRowArray[yCoord].setNumbers->unique();
+	std::list<int8_t>::iterator rowIterator = this->sodukoRowArray[yCoord].setNumbers->begin();
 	for (i = 0; i < GRID_SIZE; i++)
 	{
-		for (k = 0; k < GRID_SIZE; k++)
+		//keep checking if the iterator still has numbers left
+		while (rowIterator != this->sodukoRowArray[yCoord].setNumbers->end())
 		{
-			if (this->sodukoMap[i][yCoord].remainingNumbers[k] == true &&  possibleValues[k] == false)
-			{
-				this->sodukoMap[i][yCoord].remainingNumbers[k] = false;
-			}
+			//remove numbers if they are already present in the row
+			this->sodukoMap[i][yCoord].remainingNumbers->remove(*rowIterator);
+			//move iterator to next number
+			rowIterator++;
 		}
+		//restart iterator at beginning for each point being analyzed
+		rowIterator = this->sodukoRowArray[yCoord].setNumbers->begin();
 	}
 }
 
+
 void SodukoSolver::analyzeColumn(int xCoord, int yCoord)
-{
-	//holds legal values for this column only
-	bool possibleValues[9] = { true,true,true,true,true,true,true,true,true };
-	//coordinates of the current point
+{	//coordinates of the current point
 	int j = 0;
 	int k = 0;
 
+	/* iterate through the column and see if any points already have a 
+	set value. If they do, add that value to the list of set values for this row*/
 	for (j = 0; j < GRID_SIZE; j++)
 	{
 		if (this->sodukoMap[xCoord][j].isSet)
 		{
-			possibleValues[this->sodukoMap[xCoord][j].pointValue] = false;
+			this->sodukoColumnArray[xCoord].setNumbers->push_back(this->sodukoMap[xCoord][j].pointValue);
 		}
 	}
+	/* sort and remove any duplicates from previous analyzeColumn calls*/
+	this->sodukoColumnArray[xCoord].setNumbers->sort();
+	this->sodukoColumnArray[xCoord].setNumbers->unique();
+	std::list<int8_t>::iterator columnIterator = this->sodukoRowArray[xCoord].setNumbers->begin();
 	for (j = 0; j < GRID_SIZE; j++)
 	{
-		for (k = 0; k < GRID_SIZE; k++)
+		//iterate while there are still numbers left
+		while (columnIterator != this->sodukoColumnArray[xCoord].setNumbers->end())
 		{
-			if (this->sodukoMap[xCoord][j].remainingNumbers[k] == true &&  possibleValues[k] == false)
-			{
-				this->sodukoMap[xCoord][j].remainingNumbers[k] = false;
-			}
+			//remove any numbers that are already set in the grid
+			this->sodukoMap[xCoord][j].remainingNumbers->remove(*columnIterator);
+			columnIterator++;
 		}
+		//restart the iterator for each point being analyzed
+		columnIterator = this->sodukoColumnArray[xCoord].setNumbers->begin();
 	}
 }
+
 
 void SodukoSolver::analyzeGrid(int xCoord, int yCoord)
 {
 	//the starting indices of the grid where the point lies
 	int xGridBaseCoord = xCoord/3;
 	int yGridBaseCoord = (yCoord / 3) * 3;
-
+	
+	//find which grid the point corresponds to
 	int gridIndex = xGridBaseCoord + yGridBaseCoord;
 	int i, j, k;
 
@@ -170,19 +185,25 @@ void SodukoSolver::analyzeGrid(int xCoord, int yCoord)
 		{
 			if (this->sodukoMap[i+xGridBaseCoord][j+yGridBaseCoord].isSet)
 			{
-				this->sodukoGridArray[gridIndex].remainingNumbers[this->sodukoMap[i + xGridBaseCoord][j + yGridBaseCoord].pointValue] = false;;
+				this->sodukoGridArray[gridIndex].setNumbers->push_back(this->sodukoMap[i + xGridBaseCoord][j + yGridBaseCoord].pointValue);
 			}
 		}
 	}
+	/* sort and remove any duplicates from previous analyzeGrid calls*/
+	this->sodukoGridArray[gridIndex].setNumbers->sort();
+	this->sodukoGridArray[gridIndex].setNumbers->unique();
+	std::list<int8_t>::iterator gridIterator = this->sodukoGridArray[gridIndex].setNumbers->begin();
 
 	for (j = 0; j < 3; j++)
 	{
 		for (k = 0; k < 3; k++)
 		{
-			if (this->sodukoMap[i + xGridBaseCoord][j + yGridBaseCoord].remainingNumbers[k] == true &&  this->sodukoGridArray[gridIndex].remainingNumbers[k] == false)
+			while (gridIterator != this->sodukoGridArray[gridIndex].setNumbers->end())
 			{
-				this->sodukoMap[i + xGridBaseCoord][j + yGridBaseCoord].remainingNumbers[k] = false;
+				this->sodukoMap[i+xGridBaseCoord][j+yGridBaseCoord].remainingNumbers->remove(*gridIterator);
+				gridIterator++;
 			}
+			gridIterator = this->sodukoGridArray[gridIndex].setNumbers->begin();
 		}
 	}
 }

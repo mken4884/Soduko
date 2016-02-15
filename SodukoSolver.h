@@ -1,7 +1,27 @@
 #pragma once
 #include "Soduko.h"
 #include <cstdint>
+#include <list>
 #define GRID_SIZE 9
+/*
+*SodukoRow
+*Holds the remaining numbers for each row
+*
+*/
+struct SodukoRow {
+	std::list<int8_t>* setNumbers;
+	int8_t             rowNumber;
+};
+
+/*
+*SodukoRow
+*Holds the remaining numbers for each row
+*
+*/
+struct SodukoColumn {
+	std::list<int8_t>* setNumbers;
+	int8_t             columnNumber;
+};
 
 /*
 *SodukoGrid
@@ -12,8 +32,8 @@
 * 6 7 8
 */
 struct SodukoGrid {
-	bool* remainingNumbers;
-	int8_t  gridNumber;
+	std::list<int8_t>* setNumbers;
+	int8_t             gridNumber;
 };
 
 /*
@@ -22,10 +42,10 @@ struct SodukoGrid {
 *Possible values, if it has a value, and value
 */
 struct SodukoPoint {
-	bool*     remainingNumbers;
-	bool        isSet;
-	int8_t      pointValue;
-	SodukoGrid* grid;
+	std::list<int8_t>* remainingNumbers;
+	bool               isSet;
+	int8_t             pointValue;
+	SodukoGrid*        grid;
 
 };
 
@@ -45,8 +65,9 @@ public:
 	bool isSolved();
 	void printSodukoMap();
 	bool setValue(int xCoord, int yCoord);
-	SodukoPoint sodukoMap[GRID_SIZE][GRID_SIZE];
-	SodukoGrid  sodukoGridArray[GRID_SIZE];
-
+	SodukoPoint  sodukoMap[GRID_SIZE][GRID_SIZE];
+	SodukoGrid   sodukoGridArray[GRID_SIZE];
+	SodukoRow    sodukoRowArray[GRID_SIZE];
+	SodukoColumn sodukoColumnArray[GRID_SIZE];
 
 };
