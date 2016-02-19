@@ -1,18 +1,27 @@
 #pragma once
 #include "Soduko.h"
+#include <cstdint>
+#include <list>
 #define GRID_SIZE 9
-
 /*
-*SudokoPoint
-*Holds information about each point in the grid including 
-*Possible values, if it has a value, and value
+*SodukoRow
+*Holds the remaining numbers for each row
+*
 */
-struct SodukoPoint {
-	char* remainingNumbers;
-	bool  isSet;
-	char  pointValue;
+struct SodukoRow {
+	std::list<int8_t>* setNumbers;
+	int8_t             rowNumber;
 };
 
+/*
+*SodukoRow
+*Holds the remaining numbers for each row
+*
+*/
+struct SodukoColumn {
+	std::list<int8_t>* setNumbers;
+	int8_t             columnNumber;
+};
 
 /*
 *SodukoGrid
@@ -23,8 +32,22 @@ struct SodukoPoint {
 * 6 7 8
 */
 struct SodukoGrid {
-	char* remainingNumbers;
-	char  gridNumber;
+	std::list<int8_t>* setNumbers;
+	int8_t             gridNumber;
+	int8_t			   possiblePointValuesSize;
+};
+
+/*
+*SudokoPoint
+*Holds information about each point in the grid including
+*Possible values, if it has a value, and value
+*/
+struct SodukoPoint {
+	std::list<int8_t>* remainingNumbers;
+	bool               isSet;
+	int8_t             pointValue;
+	SodukoGrid*        grid;
+
 };
 
 class SodukoSolver {
@@ -33,14 +56,20 @@ public:
 	~SodukoSolver();
 	void setSoduko(Soduko* sodukoGrid);
 	void solveSoduko();
+
+//private:
 	void analyzeRow(int xCoord, int yCoord);
 	void analyzeColumn(int xCoord, int yCoord);
 	void analyzeGrid(int xCoord, int yCoord);
+	int8_t analyzeRemainingNumbers(int xCoord, int yCoord);
 	bool isLegalMove(int xCoord, int yCoord, int value);
-	bool setGrid();
-private:
-	SodukoPoint sodukoGrid[GRID_SIZE][GRID_SIZE];
-	SodukoGrid  sodukoGridArray[GRID_SIZE];
-
+	bool setPoint(int xCoord, int yCoord, int value);
+	bool isSolved();
+	void printSodukoMap();
+	bool setValue(int xCoord, int yCoord);
+	SodukoPoint  sodukoMap[GRID_SIZE][GRID_SIZE];
+	SodukoGrid   sodukoGridArray[GRID_SIZE];
+	SodukoRow    sodukoRowArray[GRID_SIZE];
+	SodukoColumn sodukoColumnArray[GRID_SIZE];
 
 };

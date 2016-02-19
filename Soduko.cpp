@@ -22,7 +22,7 @@ int  Soduko::getSize()
 
 bool Soduko::isSolved()
 {
-
+	return false;
 }
 
 
@@ -52,7 +52,7 @@ void Soduko::sodukoCreate()
 
 bool Soduko::sodukoClean()
 {
-
+	return true;
 }
 
 
@@ -62,7 +62,3 @@ void isSolvable()
 }
 
 
-char sodukoGrid[9][9]
-{
-
-}
