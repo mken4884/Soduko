@@ -34,6 +34,7 @@ struct SodukoColumn {
 struct SodukoGrid {
 	std::list<int8_t>* setNumbers;
 	int8_t             gridNumber;
+	int8_t			   possiblePointValuesSize;
 };
 
 /*
@@ -60,6 +61,7 @@ public:
 	void analyzeRow(int xCoord, int yCoord);
 	void analyzeColumn(int xCoord, int yCoord);
 	void analyzeGrid(int xCoord, int yCoord);
+	int8_t analyzeRemainingNumbers(int xCoord, int yCoord);
 	bool isLegalMove(int xCoord, int yCoord, int value);
 	bool setPoint(int xCoord, int yCoord, int value);
 	bool isSolved();
